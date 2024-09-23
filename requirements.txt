@@ -1,0 +1,10 @@
+Windows 11
+Step 1: Install Anaconda - https://www.anaconda.com/download
+Step 2: In CMD, run the command "conda create -n mlagents python=3.10.12 && conda activate mlagents"
+Step 3: In CMD, run the command "pip3 install torch~=2.2.1 --index-url https://download.pytorch.org/whl/cu121"
+Step 4: Make sure to CD into the path of OpenAI_EscapeRoom
+Step 5: Once in the directory, run the command "python -m pip install ./ml-agents-envs"
+Step 6: Run the next command "python -m pip install ./ml-agents"
+Step 7: Next, run the command "pip install --upgrade mlagents torch"
+Step 8: Make sure you can run "mlagents-learn --help" with no errors. If you get errors, please try the steps again.
+
