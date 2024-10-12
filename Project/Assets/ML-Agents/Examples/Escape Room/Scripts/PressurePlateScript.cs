@@ -51,4 +51,19 @@ public class PressurePlate : MonoBehaviour
             door.CloseDoor();
         }
     }
+
+    // Method to reset the pressure plate and door to their default state
+    public void ResetPlate()
+    {
+        isActivated = false;
+
+        // Reset the material of the plate to the default one
+        if (plateRenderer != null && defaultMaterial != null)
+        {
+            plateRenderer.material = defaultMaterial;
+        }
+
+        // Reset the door (make sure it’s closed)
+        door.CloseDoor();
+    }
 }

@@ -1,39 +1,55 @@
-using System.Collections;  // For IEnumerator
-using System.Collections.Generic;  // For collections like List
-using UnityEngine;  // For MonoBehaviour, Vector3, etc.
+using System.Collections;  // Needed for IEnumerator
+using UnityEngine;  // Needed for MonoBehaviour, Vector3, and other Unity components
 
 public class Door : MonoBehaviour
 {
-    private Vector3 openPosition;
-    private Vector3 closedPosition;
+    public Vector3 openPosition;  // The position the door moves to when it opens
+    public Vector3 closedPosition;  // The original position of the door
+    public float openSpeed = 5f;  // Speed at which the door opens/closes
 
-    public float speed = 2f;  // Speed of the door opening/closing
+    private bool isOpen = false;  // Track if the door is open or closed
 
     private void Start()
     {
-        closedPosition = transform.position;  // Save the initial position as closed position
-        openPosition = transform.position + new Vector3(0, 3f, 0);  // Set open position (e.g., 3 units upward)
+        // Ensure the door starts in the correct position
+        Debug.Log("Door starting position: " + transform.localPosition);
     }
 
+    // Open the door
     public void OpenDoor()
     {
-        StopAllCoroutines();
-        StartCoroutine(MoveDoor(openPosition));
+        if (!isOpen) // Only open the door if it's not already open
+        {
+            isOpen = true;
+            Debug.Log("Opening door. Moving to position: " + openPosition);
+            StopAllCoroutines();  // Stop any ongoing animations
+            StartCoroutine(MoveDoor(openPosition));
+        }
     }
 
+    // Close the door
     public void CloseDoor()
     {
-        StopAllCoroutines();
-        StartCoroutine(MoveDoor(closedPosition));
+        if (isOpen) // Only close the door if it's open
+        {
+            isOpen = false;
+            Debug.Log("Closing door. Moving to position: " + closedPosition);
+            StopAllCoroutines();  // Stop any ongoing animations
+            StartCoroutine(MoveDoor(closedPosition));
+        }
     }
 
+    // Move the door over time to its target position
     private IEnumerator MoveDoor(Vector3 targetPosition)
     {
-        while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+        while (Vector3.Distance(transform.localPosition, targetPosition) > 0.01f)
         {
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
-            yield return null;
+            transform.localPosition = Vector3.MoveTowards(transform.localPosition, targetPosition, openSpeed * Time.deltaTime);
+            yield return null;  // Wait for the next frame
         }
-        transform.position = targetPosition;
+
+        // Ensure the door snaps exactly to the target position
+        transform.localPosition = targetPosition;
+        Debug.Log("Door reached position: " + transform.localPosition);
     }
 }

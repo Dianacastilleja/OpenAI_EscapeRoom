@@ -1,0 +1,29 @@
+{
+    "EscapeArtist": {
+        "checkpoints": [
+            {
+                "steps": 5045,
+                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.onnx",
+                "reward": 0.25,
+                "creation_time": 1728303481.6885881,
+                "auxillary_file_paths": [
+                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 5045,
+            "file_path": "results\\escaperoom\\EscapeArtist.onnx",
+            "reward": 0.25,
+            "creation_time": 1728303481.6885881,
+            "auxillary_file_paths": [
+                "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0.dev0",
+        "torch_version": "2.4.1+cpu"
+    }
+}

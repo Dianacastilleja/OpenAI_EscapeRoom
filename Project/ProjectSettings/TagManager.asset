@@ -43,6 +43,10 @@ TagManager:
   - Door
   - PressurePlate
   - EndGoal
+  - Wall
+  - Floor
+  - pressurePlate
+  - endGoal
   layers:
   - Default
   - TransparentFX
