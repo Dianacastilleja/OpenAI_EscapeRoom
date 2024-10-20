@@ -11,7 +11,7 @@ public class PressurePlate : MonoBehaviour
 
     private void Start()
     {
-        // Make sure the plate starts with its default material
+        // Ensure the plate starts with its default material
         if (plateRenderer != null && defaultMaterial != null)
         {
             plateRenderer.material = defaultMaterial;
@@ -24,33 +24,19 @@ public class PressurePlate : MonoBehaviour
         {
             isActivated = true;
 
-            // Change the material to green (activated)
+            // Change the material to indicate the plate is activated
             if (plateRenderer != null && activatedMaterial != null)
             {
                 plateRenderer.material = activatedMaterial;
             }
 
-            // Open the door
+            // Open the door and keep it open for the rest of the episode
             door.OpenDoor();
         }
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Agent") && isActivated)
-        {
-            isActivated = false;
-
-            // Change the material back to the default material
-            if (plateRenderer != null && defaultMaterial != null)
-            {
-                plateRenderer.material = defaultMaterial;
-            }
-
-            // Close the door if the agent steps off the plate (optional)
-            door.CloseDoor();
-        }
-    }
+    // We no longer need OnTriggerExit, as the door should stay open once activated
+    // Remove the exit condition for keeping the door open throughout the episode
 
     // Method to reset the pressure plate and door to their default state
     public void ResetPlate()
@@ -63,7 +49,7 @@ public class PressurePlate : MonoBehaviour
             plateRenderer.material = defaultMaterial;
         }
 
-        // Reset the door (make sure it’s closed)
+        // Reset the door to its closed position
         door.CloseDoor();
     }
 }

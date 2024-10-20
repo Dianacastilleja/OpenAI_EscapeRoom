@@ -2,22 +2,49 @@
     "EscapeArtist": {
         "checkpoints": [
             {
-                "steps": 5045,
-                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.onnx",
-                "reward": 0.25,
-                "creation_time": 1728303481.6885881,
+                "steps": 43499936,
+                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-43499936.onnx",
+                "reward": null,
+                "creation_time": 1729458404.7346811,
                 "auxillary_file_paths": [
-                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.pt"
+                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-43499936.pt"
+                ]
+            },
+            {
+                "steps": 43508704,
+                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-43508704.onnx",
+                "reward": null,
+                "creation_time": 1729458454.7257879,
+                "auxillary_file_paths": [
+                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-43508704.pt"
+                ]
+            },
+            {
+                "steps": 43999760,
+                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-43999760.onnx",
+                "reward": null,
+                "creation_time": 1729458674.6035128,
+                "auxillary_file_paths": [
+                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-43999760.pt"
+                ]
+            },
+            {
+                "steps": 44089124,
+                "file_path": "results\\escaperoom\\EscapeArtist\\EscapeArtist-44089124.onnx",
+                "reward": null,
+                "creation_time": 1729458713.0964098,
+                "auxillary_file_paths": [
+                    "results\\escaperoom\\EscapeArtist\\EscapeArtist-44089124.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 5045,
+            "steps": 44089124,
             "file_path": "results\\escaperoom\\EscapeArtist.onnx",
-            "reward": 0.25,
-            "creation_time": 1728303481.6885881,
+            "reward": null,
+            "creation_time": 1729458713.0964098,
             "auxillary_file_paths": [
-                "results\\escaperoom\\EscapeArtist\\EscapeArtist-5045.pt"
+                "results\\escaperoom\\EscapeArtist\\EscapeArtist-44089124.pt"
             ]
         }
     },
