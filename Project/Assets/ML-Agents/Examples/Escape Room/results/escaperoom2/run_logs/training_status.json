@@ -2,24 +2,6 @@
     "EscapeArtist": {
         "checkpoints": [
             {
-                "steps": 499915,
-                "file_path": "results\\escaperoom2\\EscapeArtist\\EscapeArtist-499915.onnx",
-                "reward": -3.725000035017729,
-                "creation_time": 1729458943.4122567,
-                "auxillary_file_paths": [
-                    "results\\escaperoom2\\EscapeArtist\\EscapeArtist-499915.pt"
-                ]
-            },
-            {
-                "steps": 999802,
-                "file_path": "results\\escaperoom2\\EscapeArtist\\EscapeArtist-999802.onnx",
-                "reward": null,
-                "creation_time": 1729459154.355745,
-                "auxillary_file_paths": [
-                    "results\\escaperoom2\\EscapeArtist\\EscapeArtist-999802.pt"
-                ]
-            },
-            {
                 "steps": 1499788,
                 "file_path": "results\\escaperoom2\\EscapeArtist\\EscapeArtist-1499788.onnx",
                 "reward": -371.60000152885914,
@@ -45,15 +27,33 @@
                 "auxillary_file_paths": [
                     "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2393109.pt"
                 ]
+            },
+            {
+                "steps": 2499763,
+                "file_path": "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2499763.onnx",
+                "reward": null,
+                "creation_time": 1729460062.1251884,
+                "auxillary_file_paths": [
+                    "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2499763.pt"
+                ]
+            },
+            {
+                "steps": 2712622,
+                "file_path": "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2712622.onnx",
+                "reward": null,
+                "creation_time": 1729460159.2066033,
+                "auxillary_file_paths": [
+                    "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2712622.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 2393109,
+            "steps": 2712622,
             "file_path": "results\\escaperoom2\\EscapeArtist.onnx",
             "reward": null,
-            "creation_time": 1729459747.0232217,
+            "creation_time": 1729460159.2066033,
             "auxillary_file_paths": [
-                "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2393109.pt"
+                "results\\escaperoom2\\EscapeArtist\\EscapeArtist-2712622.pt"
             ]
         }
     },

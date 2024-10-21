@@ -2,12 +2,12 @@ using UnityEngine;
 
 public class PressurePlate : MonoBehaviour
 {
-    public Door door;  // Reference to the Door object to control
-    public Material activatedMaterial;  // Material to switch to when the plate is activated
-    public Material defaultMaterial;  // Original material of the pressure plate
-    public Renderer plateRenderer;  // The Renderer component for the pressure plate
+    public Door door;                   // Reference to the Door script
+    public Material activatedMaterial;  // Material to indicate the plate is activated
+    public Material defaultMaterial;    // Default material
+    public Renderer plateRenderer;      // The Renderer component for the pressure plate
 
-    private bool isActivated = false;  // To prevent repeated activations
+    private bool isActivated = false;   // To prevent repeated activations
 
     private void Start()
     {
@@ -20,7 +20,22 @@ public class PressurePlate : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Agent") && !isActivated)
+        if (!isActivated && other.CompareTag("Agent"))
+        {
+            ActivatePlate();
+            // Open the door
+            if (door != null)
+            {
+                door.OpenDoor();
+            }
+            Debug.Log("Pressure plate activated by agent.");
+        }
+    }
+
+    // Method to activate the pressure plate
+    public void ActivatePlate()
+    {
+        if (!isActivated)
         {
             isActivated = true;
 
@@ -29,16 +44,11 @@ public class PressurePlate : MonoBehaviour
             {
                 plateRenderer.material = activatedMaterial;
             }
-
-            // Open the door and keep it open for the rest of the episode
-            door.OpenDoor();
+            Debug.Log("PressurePlate: ActivatePlate() called.");
         }
     }
 
-    // We no longer need OnTriggerExit, as the door should stay open once activated
-    // Remove the exit condition for keeping the door open throughout the episode
-
-    // Method to reset the pressure plate and door to their default state
+    // Method to reset the pressure plate to its default state
     public void ResetPlate()
     {
         isActivated = false;
@@ -48,8 +58,6 @@ public class PressurePlate : MonoBehaviour
         {
             plateRenderer.material = defaultMaterial;
         }
-
-        // Reset the door to its closed position
-        door.CloseDoor();
+        Debug.Log("PressurePlate: ResetPlate() called.");
     }
 }

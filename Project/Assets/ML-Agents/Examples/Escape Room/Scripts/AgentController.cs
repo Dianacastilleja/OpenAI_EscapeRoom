@@ -10,172 +10,210 @@ public class EscapeRoomAgent : Agent
     public GameObject endGoal;       // Reference to the EndGoal object
     public GameObject door;          // Reference to the Door object
     public float spawnRange = 8f;
-    public float stuckThreshold = 0.05f;  // Threshold for detecting if agent is stuck
+    public float stuckThreshold = 0.1f;  // Threshold for detecting if agent is stuck
     public int stuckCheckFrequency = 100; // Frequency of checking if agent is stuck
+    public int stuckGracePeriod = 5;      // Grace period before applying penalty
     public float proximityPenaltyThreshold = 3.0f; // Time threshold for applying penalty for hugging the door
-    public float distanceRewardMultiplier = 1.0f; // Multiplier for rewarding agent for moving towards the end goal when door is open
+    public float distanceRewardMultiplier = 1.0f;  // Multiplier for rewarding agent for moving towards the end goal when door is open
 
     private bool platePressed = false; // To track if plate was pressed
     private bool goalReached = false;  // To track if goal was reached
     private bool doorIsOpen = false;   // To track if the door has been opened
     private float totalReward;         // Track total reward during the episode
 
-    private Vector3 lastPosition; // For checking if the agent is stuck
+    private Vector3 lastPosition;      // For checking if the agent is stuck
     private int stepsSinceLastMoveCheck = 0; // For controlling when to check for being stuck
+    private int stuckChecks = 0;       // Count of stuck checks
     private float proximityTimer = 0f; // To track time spent near the door
 
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody>();
-
         // Freeze rotation on X and Z axes to prevent flipping
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-
         lastPosition = transform.localPosition; // Initialize lastPosition to the starting position
     }
 
     public override void OnEpisodeBegin()
     {
-        // Reset agent's velocity
-        rb.velocity = Vector3.zero;
-
-        // Reset task progress and reward
+        rb.velocity = Vector3.zero;  // Reset agent's velocity
+        rb.angularVelocity = Vector3.zero; // Reset angular velocity
         platePressed = false;
         goalReached = false;
         doorIsOpen = false;
-        totalReward = 0f; // Reset the total reward at the start of the episode
-        proximityTimer = 0f; // Reset the proximity timer
+        totalReward = 0f;  // Reset total reward at the start of the episode
+        proximityTimer = 0f;
+        stuckChecks = 0;   // Reset stuck checks
 
-        // Call the ResetPlate method on the PressurePlate component
+        // Reset the pressure plate and door
         pressurePlate.GetComponent<PressurePlate>().ResetPlate();
+        door.GetComponent<Door>().CloseDoor();
 
-        // Randomize agent position
+        RandomizePositions();  // Randomize agent and pressure plate positions
+    }
+
+    private void RandomizePositions()
+    {
         float randomX = Random.Range(-4f, 14.0f);
         float randomZ = Random.Range(-4f, 14.0f);
-        transform.localPosition = new Vector3(randomX, 0.2f, randomZ);
+        transform.localPosition = new Vector3(randomX, -0.75f, randomZ);
 
-        // Randomize pressure plate position within defined bounds
-        float plateRandomX = Random.Range(-6f, 13.0f);  // Adjust bounds based on level design
-        float plateRandomZ = Random.Range(-18f, 1.0f);  // Adjust bounds based on level design
-        pressurePlate.transform.localPosition = new Vector3(plateRandomX, 0f, plateRandomZ);  // Keep Y at 0f for floor level
-
-        // Log the start of a new episode
-        Debug.Log("New episode started. Agent and objects repositioned.");
+        float plateRandomX = Random.Range(-6f, 13.0f);
+        float plateRandomZ = Random.Range(-18f, 1.0f);
+        pressurePlate.transform.localPosition = new Vector3(plateRandomX, 0f, plateRandomZ);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // Collect agent's position
-        sensor.AddObservation(transform.localPosition);
+        float maxRange = 20f; // Assuming environment boundaries are from -20 to 20 on each axis
 
-        // Collect pressure plate's relative position
-        sensor.AddObservation(pressurePlate.transform.localPosition - transform.localPosition);
+        // Normalize agent's local position
+        Vector3 normalizedAgentPos = transform.localPosition / maxRange;
+        sensor.AddObservation(normalizedAgentPos);
 
-        // Collect end goal's relative position
-        sensor.AddObservation(endGoal.transform.localPosition - transform.localPosition);
+        // Include agent's Y rotation (yaw), normalized to [-1, 1]
+        float yaw = transform.eulerAngles.y;
+        float normalizedYaw = Mathf.Repeat(yaw, 360f) / 180f - 1f;
+        sensor.AddObservation(normalizedYaw);
+
+        // Normalize relative positions
+        Vector3 relativePlatePos = (pressurePlate.transform.localPosition - transform.localPosition) / maxRange;
+        sensor.AddObservation(relativePlatePos);
+
+        Vector3 relativeEndGoalPos = (endGoal.transform.localPosition - transform.localPosition) / maxRange;
+        sensor.AddObservation(relativeEndGoalPos);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        // Check if the agent has fallen out of the map
-        if (transform.localPosition.y < -5f) // Adjust threshold based on map design
+        HandleMovement(actions);  // Handle movement and rotation
+        HandlePenalties();        // Handle different penalties (stuck, proximity to door)
+        HandleRewards();          // Handle rewards for reaching goals
+
+        // Apply penalty if MaxStep is reached without reaching the goal
+        if (StepCount >= MaxStep && !goalReached)
         {
-            Debug.Log("Agent fell out of the map at position: " + transform.localPosition);
-            SetReward(-5.0f);  // Significant penalty for falling off the map
-            LogRewardChange(-5.0f);
+            AddReward(-0.5f); // Penalty for not reaching the goal
+            Debug.Log("Failed to reach the goal within MaxStep. Penalty applied: -0.5");
             EndEpisode();
         }
+    }
 
-        // Movement logic
-        float moveX = actions.ContinuousActions[0]; // Forward/Backward
-        float turn = actions.ContinuousActions[1];  // Left/Right
+    private void HandleMovement(ActionBuffers actions)
+    {
+        float moveX = actions.ContinuousActions[0];
+        float turn = actions.ContinuousActions[1];
 
-        // Apply movement and rotation to the agent
+        float moveSpeed = 5f;        // Reduced from 10f
+        float rotationSpeed = 100f;  // Reduced from 300f
+
         if (Mathf.Abs(moveX) > 0.01f)
         {
-            // Move the agent forward or backward
-            transform.localPosition += transform.forward * moveX * Time.deltaTime * 10f; // Adjust speed multiplier as needed
+            Vector3 movement = transform.forward * moveX * Time.fixedDeltaTime * moveSpeed;
+            rb.MovePosition(rb.position + movement);
         }
 
         if (Mathf.Abs(turn) > 0.01f)
         {
-            // Rotate the agent
-            transform.Rotate(new Vector3(0, turn * Time.deltaTime * 300f, 0)); // Adjust rotation speed as needed
+            Quaternion rotation = Quaternion.Euler(new Vector3(0f, turn * Time.fixedDeltaTime * rotationSpeed, 0f));
+            rb.MoveRotation(rb.rotation * rotation);
         }
+    }
 
-        // Penalize unnecessary turning (when turning but not moving forward much)
-        if (Mathf.Abs(turn) > 0.5f && Mathf.Abs(moveX) < 0.1f)  // If agent turns sharply but isn't moving much
-        {
-            SetReward(-0.2f);  // Penalty for unnecessary turning
-            LogRewardChange(-0.2f);
-            Debug.Log("Penalty for unnecessary turning: -0.2");
-        }
+    private void HandlePenalties()
+    {
+        CheckForStuckAgent();      // Check if the agent is stuck
+        CheckProximityToDoor();    // Check if the agent is hugging the door
+    }
 
-        // Check if the agent is stuck (hasn't moved much for a while)
-        stepsSinceLastMoveCheck++;
-        if (stepsSinceLastMoveCheck >= stuckCheckFrequency)
-        {
-            if (Vector3.Distance(transform.localPosition, lastPosition) < stuckThreshold)
-            {
-                SetReward(-0.5f);  // Small penalty for being stuck
-                LogRewardChange(-0.5f);
-                Debug.Log("Agent stuck. Penalty for being stuck: -0.5");
-            }
-            lastPosition = transform.localPosition;  // Update last known position
-            stepsSinceLastMoveCheck = 0; // Reset the move check counter
-        }
-
-        // Check if agent is too close to the door for too long
+    private void CheckProximityToDoor()
+    {
         if (Vector3.Distance(transform.localPosition, door.transform.localPosition) < 1.5f && !doorIsOpen)
         {
             proximityTimer += Time.deltaTime;
-
             if (proximityTimer > proximityPenaltyThreshold)
             {
-                SetReward(-1.0f); // Penalty for staying near the door too long when it's not open
-                LogRewardChange(-1.0f);
-                Debug.Log("Penalty for hugging the door: -1.0");
+                AddReward(-0.1f); // Reduced penalty magnitude
+                Debug.Log("Penalty for hugging the door: -0.1");
+                proximityTimer = 0f; // Reset timer after penalty
             }
         }
         else
         {
-            proximityTimer = 0f; // Reset the timer if agent moves away from the door
+            proximityTimer = 0f;
+        }
+    }
+
+    private void CheckForStuckAgent()
+    {
+        stepsSinceLastMoveCheck++;
+        if (stepsSinceLastMoveCheck >= stuckCheckFrequency)
+        {
+            float distanceMoved = Vector3.Distance(transform.localPosition, lastPosition);
+            if (distanceMoved < stuckThreshold)
+            {
+                stuckChecks++;
+
+                if (stuckChecks > stuckGracePeriod)
+                {
+                    AddReward(-0.1f); // Reduced penalty magnitude
+                    LogRewardChange(-0.1f);
+                    Debug.Log("Agent stuck. Penalty applied: -0.1");
+                    stuckChecks = 0; // Reset stuck checks after penalty
+                }
+            }
+            else
+            {
+                stuckChecks = 0; // Reset if the agent moves
+            }
+
+            lastPosition = transform.localPosition;
+            stepsSinceLastMoveCheck = 0;
+        }
+    }
+
+    private void HandleRewards()
+    {
+        // Reward for moving closer to the pressure plate
+        if (!platePressed)
+        {
+            float distanceToPlate = Vector3.Distance(transform.localPosition, pressurePlate.transform.localPosition);
+            float normalizedDistance = distanceToPlate / 20f; // Normalize based on maximum possible distance
+            float distanceReward = (1.0f - normalizedDistance) * 0.01f; // Small incremental reward
+            AddReward(distanceReward);
         }
 
-        // Check if agent pressed the plate (you can also use TriggerEnter for more accuracy)
+        // Reward for pressing the plate
         if (!platePressed && Vector3.Distance(transform.localPosition, pressurePlate.transform.localPosition) < 1f)
         {
-            platePressed = true;  // Ensure the reward is given only once per episode
-            SetReward(5.0f); // Reward for pressing the plate
-            LogRewardChange(5.0f);
-            door.GetComponent<Door>().OpenDoor(); // Ensure the door opens
-            doorIsOpen = true;  // Mark that the door is now open
-            Debug.Log("Pressure plate pressed. Reward given: 5.0");
+            platePressed = true;
+            AddReward(0.5f); // Adjusted reward magnitude
+            pressurePlate.GetComponent<PressurePlate>().ActivatePlate(); // Activate the pressure plate
+            door.GetComponent<Door>().OpenDoor();
+            doorIsOpen = true;
+            Debug.Log("Pressure plate pressed. Reward given: 0.5");
         }
 
-        // Apply distance-based reward to the end goal only if the door is open
+        // Reward for moving closer to the end goal
         if (doorIsOpen && !goalReached)
         {
             float distanceToGoal = Vector3.Distance(transform.localPosition, endGoal.transform.localPosition);
-            float distanceReward = 0.1f / distanceToGoal;  // Increase reward as the agent gets closer to the goal
-            SetReward(distanceReward * distanceRewardMultiplier);  // Scale the reward with a multiplier
-            LogRewardChange(distanceReward * distanceRewardMultiplier);
-            Debug.Log($"Distance-based reward to the goal: {distanceReward * distanceRewardMultiplier}");
+            float normalizedDistance = distanceToGoal / 20f;
+            float distanceReward = (1.0f - normalizedDistance) * 0.01f;
+            AddReward(distanceReward);
         }
+    }
 
-        // Check if agent reached the end goal
-        if (!goalReached && Vector3.Distance(transform.localPosition, endGoal.transform.localPosition) < 1f)
+    // Method called when the agent reaches the end goal
+    public void ReachedEndGoal()
+    {
+        if (!goalReached)
         {
             goalReached = true;
-            SetReward(10.0f); // Big reward for reaching the goal
-            LogRewardChange(10.0f);
-            Debug.Log("End goal reached. Big reward given: 10.0");
-
-            // Track and log the agent's last position before ending the episode
-            lastPosition = transform.localPosition;
-            Debug.Log("Last position before episode ended: " + lastPosition);
-
-            EndEpisode();    // End the episode after reaching the goal
+            AddReward(2.0f); // Increased reward magnitude
+            LogRewardChange(2.0f);
+            Debug.Log("End goal reached. Reward given: 2.0");
+            EndEpisode(); // End the episode
         }
     }
 
@@ -184,27 +222,30 @@ public class EscapeRoomAgent : Agent
     {
         if (collision.collider.CompareTag("Wall"))
         {
-            SetReward(-1.0f); // Negative reward for hitting a wall
-            LogRewardChange(-1.0f);
-            Debug.Log("Collision with wall. Penalty given: -1.0. Ending episode.");
+            AddReward(-0.2f); // Reduced penalty
+            LogRewardChange(-0.2f);
+            Debug.Log("Collision with wall. Penalty given: -0.2. Not ending episode.");
+            // Do not end the episode to allow the agent to recover
+        }
+    }
 
-            // Track and log the agent's last position before ending the episode
-            lastPosition = transform.localPosition;
-            Debug.Log("Last position before episode ended: " + lastPosition);
-
-            EndEpisode();     // End the episode
+    // Detect trigger entry (for the end goal)
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("EndGoal"))
+        {
+            Debug.Log("Agent entered EndGoal trigger.");
+            ReachedEndGoal();
         }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        // For manual testing using keyboard input
         var continuousActions = actionsOut.ContinuousActions;
         continuousActions[0] = Input.GetAxis("Vertical");
         continuousActions[1] = Input.GetAxis("Horizontal");
     }
 
-    // Method to log the reward change and update totalReward
     private void LogRewardChange(float rewardChange)
     {
         totalReward += rewardChange;
