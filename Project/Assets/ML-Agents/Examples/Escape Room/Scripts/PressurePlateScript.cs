@@ -1,3 +1,4 @@
+/// PressurePlateScript.cs
 using UnityEngine;
 
 public class PressurePlate : MonoBehaviour
@@ -9,55 +10,72 @@ public class PressurePlate : MonoBehaviour
 
     private bool isActivated = false;   // To prevent repeated activations
 
+    public bool IsActivated
+    {
+        get { return isActivated; }
+    }
+
     private void Start()
     {
         // Ensure the plate starts with its default material
-        if (plateRenderer != null && defaultMaterial != null)
-        {
-            plateRenderer.material = defaultMaterial;
-        }
+        ResetPlate();
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"PressurePlate: Triggered by {other.gameObject.name} with tag {other.tag}.");
+
+        // Check if the object triggering is the Agent and the plate is not already activated
         if (!isActivated && other.CompareTag("Agent"))
         {
             ActivatePlate();
-            // Open the door
+
             if (door != null)
             {
                 door.OpenDoor();
+                Debug.Log("PressurePlate: Activated and door opened.");
             }
-            Debug.Log("Pressure plate activated by agent.");
+            else
+            {
+                Debug.LogWarning("PressurePlate: No Door reference found.");
+            }
+        }
+        else if (!other.CompareTag("Agent"))
+        {
+            Debug.LogWarning("PressurePlate: Triggered by non-agent object.");
         }
     }
 
-    // Method to activate the pressure plate
     public void ActivatePlate()
     {
         if (!isActivated)
         {
             isActivated = true;
 
-            // Change the material to indicate the plate is activated
             if (plateRenderer != null && activatedMaterial != null)
             {
                 plateRenderer.material = activatedMaterial;
             }
-            Debug.Log("PressurePlate: ActivatePlate() called.");
+
+            Debug.Log("PressurePlate: Activated successfully.");
+        }
+        else
+        {
+            Debug.LogWarning("PressurePlate: Attempted to activate an already activated plate.");
         }
     }
 
-    // Method to reset the pressure plate to its default state
     public void ResetPlate()
     {
+        if (isActivated) // Only log and reset if necessary
+        {
+            Debug.Log("PressurePlate: Resetting to default state.");
+        }
         isActivated = false;
 
-        // Reset the material of the plate to the default one
         if (plateRenderer != null && defaultMaterial != null)
         {
             plateRenderer.material = defaultMaterial;
         }
-        Debug.Log("PressurePlate: ResetPlate() called.");
     }
 }

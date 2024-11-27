@@ -1,3 +1,4 @@
+/// AgentController.cs
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
@@ -9,24 +10,22 @@ public class EscapeRoomAgent : Agent
     public GameObject pressurePlate;
     public GameObject endGoal;
     public GameObject door;
-    public float spawnRange = 8f;
+
+
     public float stuckThreshold = 0.1f;
     public int stuckCheckFrequency = 100;
     public int stuckGracePeriod = 5;
-    public float proximityPenaltyThreshold = 3.0f;
-    public float distanceRewardMultiplier = 1.0f;
-
-    private bool platePressed = false;
-    private bool goalReached = false;
-    private bool doorIsOpen = false;
-    private float totalReward = 0f;
-    private Vector3 lastPosition;
     private int stepsSinceLastMoveCheck = 0;
     private int stuckChecks = 0;
-    private float proximityTimer = 0f;
-    private float lastDistanceToGoal = Mathf.Infinity;
-    private float lastDistanceToPlate = Mathf.Infinity;
-    private float lastHeading = 0f;
+
+    private Vector3 lastPosition;
+    private float lastDistanceToGoal;
+    private float lastDistanceToPlate;
+
+    private bool goalReached = false;
+
+    private Door doorScript;
+    private PressurePlate plateScript;
 
     public enum TrainingStage { PlatePressing, ReachingGoal }
     public TrainingStage currentStage = TrainingStage.PlatePressing;
@@ -36,59 +35,101 @@ public class EscapeRoomAgent : Agent
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         lastPosition = transform.localPosition;
+
+        // Cache the door and pressure plate scripts
+        doorScript = door.GetComponent<Door>();
+        plateScript = pressurePlate.GetComponent<PressurePlate>();
     }
 
     public override void OnEpisodeBegin()
     {
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-        platePressed = false;
+
         goalReached = false;
-        doorIsOpen = false;
-        totalReward = 0f;
-        proximityTimer = 0f;
+        
+        stepsSinceLastMoveCheck = 0;
         stuckChecks = 0;
-        lastDistanceToGoal = Mathf.Infinity;
-        lastDistanceToPlate = Mathf.Infinity;
-        lastHeading = transform.eulerAngles.y;
 
-        pressurePlate.GetComponent<PressurePlate>().ResetPlate();
-        door.GetComponent<Door>().CloseDoor();
+        currentStage = TrainingStage.PlatePressing;
 
-        if (currentStage == TrainingStage.PlatePressing)
+        // Reset door and pressure plate states
+        if (doorScript != null)
         {
-            RandomizePositions();
+            doorScript.CloseDoor();
         }
-        else if (currentStage == TrainingStage.ReachingGoal)
+
+        if (plateScript != null)
         {
-            platePressed = true;
-            door.GetComponent<Door>().OpenDoor();
-            doorIsOpen = true;
-            RandomizePositions();
+            plateScript.ResetPlate();
         }
+
+        RandomizePositions();
+
+        lastDistanceToPlate = Vector3.Distance(transform.localPosition, pressurePlate.transform.localPosition);
+        lastDistanceToGoal = Vector3.Distance(transform.localPosition, endGoal.transform.localPosition);
     }
 
     private void RandomizePositions()
     {
-        float randomX = Random.Range(-4f, 14.0f);
-        float randomZ = Random.Range(-4f, 14.0f);
-        transform.localPosition = new Vector3(randomX, -0.75f, randomZ);
+        // Adjusted ranges to prevent immediate activation
+        float agentRandomX = Random.Range(-4f, 14.0f);
+        float agentRandomZ = Random.Range(-4f, 14.0f);
+        transform.localPosition = new Vector3(agentRandomX, -0.75f, agentRandomZ);
 
         float plateRandomX = Random.Range(-6f, 13.0f);
-        float plateRandomZ = Random.Range(-18f, 1.0f);
+        float plateRandomZ = Random.Range(-18f, -5.0f); // Keep plate away from agent's area
         pressurePlate.transform.localPosition = new Vector3(plateRandomX, 0f, plateRandomZ);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
         float maxRange = 20f;
+
+        // Agent's position and orientation
         sensor.AddObservation(transform.localPosition / maxRange);
+        sensor.AddObservation(Mathf.Repeat(transform.eulerAngles.y, 360f) / 180f - 1f);
 
-        float normalizedYaw = Mathf.Repeat(transform.eulerAngles.y, 360f) / 180f - 1f;
-        sensor.AddObservation(normalizedYaw);
+        // Agent's velocity
+        sensor.AddObservation(rb.velocity.x);
+        sensor.AddObservation(rb.velocity.z);
 
+        // Door state
+        sensor.AddObservation(doorScript.IsOpen ? 1.0f : 0.0f);
+
+        // Relative positions
+        sensor.AddObservation((door.transform.localPosition - transform.localPosition) / maxRange);
         sensor.AddObservation((pressurePlate.transform.localPosition - transform.localPosition) / maxRange);
         sensor.AddObservation((endGoal.transform.localPosition - transform.localPosition) / maxRange);
+
+        // Directional observations
+        Vector3 directionToPlate = (pressurePlate.transform.localPosition - transform.localPosition).normalized;
+        sensor.AddObservation(Vector3.Dot(transform.forward, directionToPlate));
+
+        Vector3 directionToGoal = (endGoal.transform.localPosition - transform.localPosition).normalized;
+        sensor.AddObservation(Vector3.Dot(transform.forward, directionToGoal));
+
+        // Angle to the end goal
+        float angleToGoal = Vector3.SignedAngle(transform.forward, directionToGoal, Vector3.up) / 180f;
+        sensor.AddObservation(angleToGoal);
+
+        // Raycast observations
+        float rayDistance = 10f;
+        float[] rayAngles = { -90f, -45f, -22.5f, 0f, 22.5f, 45f, 90f };
+        foreach (float angle in rayAngles)
+        {
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * transform.forward;
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, rayDistance))
+            {
+                sensor.AddObservation(hit.distance / rayDistance);
+                sensor.AddObservation(hit.collider.CompareTag("Wall") ? 1.0f : 0.0f); // Indicates if wall was hit
+            }
+            else
+            {
+                sensor.AddObservation(1f);
+                sensor.AddObservation(0.0f); // No wall detected
+            }
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -97,11 +138,11 @@ public class EscapeRoomAgent : Agent
         HandlePenalties();
         HandleRewards();
 
-        AddReward(-0.001f);  // Small time penalty
+        AddReward(-0.001f); // Small time penalty to encourage efficiency
 
         if (StepCount >= MaxStep && !goalReached)
         {
-            AddReward(-0.5f);
+            AddReward(-0.5f); // Penalty for failing to complete the task in time
             EndEpisode();
         }
     }
@@ -113,41 +154,52 @@ public class EscapeRoomAgent : Agent
         float moveSpeed = 5f;
         float rotationSpeed = 100f;
 
-        if (Mathf.Abs(moveX) > 0.01f)
-        {
-            Vector3 movement = transform.forward * moveX * Time.fixedDeltaTime * moveSpeed;
-            rb.MovePosition(rb.position + movement);
-        }
+        Vector3 movement = transform.forward * moveX * Time.fixedDeltaTime * moveSpeed;
+        rb.MovePosition(rb.position + movement);
 
-        if (Mathf.Abs(turn) > 0.01f)
-        {
-            Quaternion rotation = Quaternion.Euler(new Vector3(0f, turn * Time.fixedDeltaTime * rotationSpeed, 0f));
-            rb.MoveRotation(rb.rotation * rotation);
-        }
+        Quaternion rotation = Quaternion.Euler(0f, turn * Time.fixedDeltaTime * rotationSpeed, 0f);
+        rb.MoveRotation(rb.rotation * rotation);
     }
 
     private void HandlePenalties()
     {
         CheckForStuckAgent();
-        CheckProximityToDoor();
-        CheckIncorrectSequence();
-        CheckForBacktracking();
+        PenalizeProximityToDoor();
+        PenalizeNearPlateAfterPress();
+        PenalizeProximityToWalls();
     }
 
-    private void CheckProximityToDoor()
+    private void PenalizeProximityToDoor()
     {
-        if (Vector3.Distance(transform.localPosition, door.transform.localPosition) < 1.5f && !doorIsOpen)
+        if (!doorScript.IsOpen && Vector3.Distance(transform.localPosition, door.transform.localPosition) <= 1f)
         {
-            proximityTimer += Time.deltaTime;
-            if (proximityTimer > proximityPenaltyThreshold)
-            {
-                AddReward(-0.1f);
-                proximityTimer = 0f;
-            }
+            AddReward(-0.1f); // Penalty for being near the door when it's closed
         }
-        else
+    }
+
+    private void PenalizeNearPlateAfterPress()
+    {
+        if (plateScript.IsActivated && Vector3.Distance(transform.localPosition, pressurePlate.transform.localPosition) <= 1f)
         {
-            proximityTimer = 0f;
+            AddReward(-0.05f); // Penalty for lingering on the plate after activation
+        }
+    }
+
+    private void PenalizeProximityToWalls()
+    {
+        float wallProximityThreshold = 1.0f; // Distance at which to start penalizing
+        RaycastHit hit;
+        // Check in multiple directions
+        foreach (float angle in new[] { -90f, -45f, 0f, 45f, 90f })
+        {
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * transform.forward;
+            if (Physics.Raycast(transform.position, direction, out hit, wallProximityThreshold))
+            {
+                if (hit.collider.CompareTag("Wall"))
+                {
+                    AddReward(-0.01f); // Small penalty for being close to a wall
+                }
+            }
         }
     }
 
@@ -156,14 +208,13 @@ public class EscapeRoomAgent : Agent
         stepsSinceLastMoveCheck++;
         if (stepsSinceLastMoveCheck >= stuckCheckFrequency)
         {
-            float distanceMoved = Vector3.Distance(transform.localPosition, lastPosition);
-            if (distanceMoved < stuckThreshold)
+            if (Vector3.Distance(transform.localPosition, lastPosition) < stuckThreshold)
             {
                 stuckChecks++;
                 if (stuckChecks > stuckGracePeriod)
                 {
-                    AddReward(-0.1f);
-                    stuckChecks = 0;
+                    AddReward(-0.1f); // Penalty for being stuck
+                    EndEpisode();      // End episode if stuck for too long
                 }
             }
             else
@@ -175,59 +226,47 @@ public class EscapeRoomAgent : Agent
         }
     }
 
-    private void CheckForBacktracking()
+    public void ReachedEndGoal()
     {
-        float currentHeading = transform.eulerAngles.y;
-        float headingChange = Mathf.Abs(currentHeading - lastHeading);
-
-        if (headingChange > 90f)
+        if (!goalReached)
         {
-            AddReward(-0.05f);
-        }
-        lastHeading = currentHeading;
-    }
-
-    private void CheckIncorrectSequence()
-    {
-        if (!platePressed && Vector3.Distance(transform.localPosition, door.transform.localPosition) < 1.5f)
-        {
-            AddReward(-0.5f);
+            goalReached = true;
+            AddReward(5.0f); // Reward for successfully reaching the goal
+            EndEpisode();
         }
     }
 
     private void HandleRewards()
     {
-        if (currentStage == TrainingStage.PlatePressing && !platePressed)
+        if (currentStage == TrainingStage.PlatePressing && !plateScript.IsActivated)
         {
+            // Encourage the agent to move closer to the pressure plate
             float distanceToPlate = Vector3.Distance(transform.localPosition, pressurePlate.transform.localPosition);
-            if (distanceToPlate < lastDistanceToPlate)
-            {
-                AddReward(0.01f);
-            }
+            float progress = lastDistanceToPlate - distanceToPlate;
+
+            AddReward(progress * 0.1f);
             lastDistanceToPlate = distanceToPlate;
-
-            RewardForAlignment(pressurePlate);
-
-            if (distanceToPlate < 1f)
-            {
-                platePressed = true;
-                AddReward(1.0f);
-                pressurePlate.GetComponent<PressurePlate>().ActivatePlate();
-                door.GetComponent<Door>().OpenDoor();
-                doorIsOpen = true;
-                currentStage = TrainingStage.ReachingGoal;
-            }
         }
-        else if (currentStage == TrainingStage.ReachingGoal && doorIsOpen && !goalReached)
+        else if (currentStage == TrainingStage.PlatePressing && plateScript.IsActivated)
         {
+            AddReward(2.0f); // Reward for activating the pressure plate
+            currentStage = TrainingStage.ReachingGoal;
+
+            lastDistanceToGoal = Vector3.Distance(transform.localPosition, endGoal.transform.localPosition);
+        }
+        else if (currentStage == TrainingStage.ReachingGoal && doorScript.IsOpen)
+        {
+            // Encourage the agent to move towards the end goal
             float distanceToGoal = Vector3.Distance(transform.localPosition, endGoal.transform.localPosition);
-            if (distanceToGoal < lastDistanceToGoal)
-            {
-                AddReward(0.01f);
-            }
+            float progress = lastDistanceToGoal - distanceToGoal;
+            AddReward(progress * 0.1f);
             lastDistanceToGoal = distanceToGoal;
 
-            RewardForAlignment(endGoal);
+            Vector3 directionToGoal = (endGoal.transform.localPosition - transform.localPosition).normalized;
+            float angleToGoal = Vector3.Angle(transform.forward, directionToGoal);
+
+            float orientationPenalty = -Mathf.Abs(angleToGoal) / 180f * 0.001f;
+            AddReward(orientationPenalty);
 
             if (distanceToGoal < 1f)
             {
@@ -236,36 +275,20 @@ public class EscapeRoomAgent : Agent
         }
     }
 
-    private void RewardForAlignment(GameObject target)
-    {
-        Vector3 directionToTarget = (target.transform.localPosition - transform.localPosition).normalized;
-        float alignment = Vector3.Dot(transform.forward, directionToTarget);
-        AddReward(alignment * 0.01f);
-    }
-
-    public void ReachedEndGoal()
-    {
-        if (!goalReached)
-        {
-            goalReached = true;
-            float cumulativeReward = 2.0f + (totalReward >= 0 ? 1.0f : 0.0f);
-            AddReward(cumulativeReward);
-            EndEpisode();
-        }
-    }
-
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.collider.CompareTag("Wall"))
         {
-            AddReward(-0.2f);
+            AddReward(-0.1f);
+            Debug.Log("Agent collided with wall and received penalty.");
         }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
+        // For manual testing with keyboard input
         var continuousActions = actionsOut.ContinuousActions;
-        continuousActions[0] = Input.GetAxis("Vertical");
-        continuousActions[1] = Input.GetAxis("Horizontal");
+        continuousActions[0] = Input.GetAxis("Vertical");   // Forward/backward movement
+        continuousActions[1] = Input.GetAxis("Horizontal"); // Turning left/right
     }
 }
