@@ -1,10 +1,11 @@
+/// EndGoalScript.cs
 using UnityEngine;
 
 public class EndGoal : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("EndGoal: OnTriggerEnter called with " + other.gameObject.name);
+        Debug.Log($"EndGoal: OnTriggerEnter called with {other.gameObject.name}.");
 
         // Check if the collided object has the "Agent" tag
         if (other.CompareTag("Agent"))
@@ -16,6 +17,7 @@ public class EndGoal : MonoBehaviour
             {
                 // Call the ReachedEndGoal method on the agent
                 agent.ReachedEndGoal();
+                Debug.Log("EndGoal: Agent has reached the end goal.");
             }
             else
             {

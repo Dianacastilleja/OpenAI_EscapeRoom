@@ -1,48 +1,61 @@
+/// Door.cs
 using UnityEngine;
 
 public class Door : MonoBehaviour
 {
-    public Vector3 openPosition;  // The position the door moves to when it opens
-    public Vector3 closedPosition;  // The position the door moves to when it's closed
+    public Vector3 openPosition;   // The local position when the door is open
+    public Vector3 closedPosition; // The local position when the door is closed
 
-    private bool isOpen = false;
+    private bool isOpen = false;   // Tracks whether the door is open or closed
+
+    public bool IsOpen
+    {
+        get { return isOpen; }
+    }
 
     private void Start()
     {
-        // Explicitly set the closed position at the start
-        transform.localPosition = closedPosition;
-        Debug.Log("Door initialized at closed position: " + transform.localPosition);
+        // Ensure the door starts in the closed position
+        CloseDoor();
     }
 
-    // Open the door
+    // Opens the door by moving it to the open position
     public void OpenDoor()
     {
         if (!isOpen)
         {
             isOpen = true;
-            transform.localPosition = openPosition;  // Snap to open position
-            Debug.Log("Door opened at position: " + transform.localPosition);
+            transform.localPosition = openPosition; // Move to open position
+            Debug.Log("Door: Opened at position: " + transform.localPosition);
+        }
+        else
+        {
+            Debug.LogWarning("Door: Attempted to open an already open door.");
         }
     }
 
-    // Close the door
+    // Closes the door by moving it to the closed position
     public void CloseDoor()
     {
         if (isOpen)
         {
             isOpen = false;
-            transform.localPosition = closedPosition;  // Snap to closed position
-            Debug.Log("Door closed at position: " + transform.localPosition);
+            transform.localPosition = closedPosition; // Move to closed position
+            Debug.Log("Door: Closed at position: " + transform.localPosition);
+        }
+        else
+        {
+            Debug.LogWarning("Door: Attempted to close an already closed door.");
         }
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
-        Debug.Log("Door is enabled");
+        Debug.Log("Door: Enabled in the scene.");
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
-        Debug.Log("Warning: Door has been deactivated!");
+        Debug.LogWarning("Door: Has been deactivated!");
     }
 }
