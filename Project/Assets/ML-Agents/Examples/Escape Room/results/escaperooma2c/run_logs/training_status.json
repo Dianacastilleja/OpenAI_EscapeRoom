@@ -1,0 +1,65 @@
+{
+    "EscapeArtist": {
+        "checkpoints": [
+            {
+                "steps": 8499943,
+                "file_path": "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-8499943.onnx",
+                "reward": null,
+                "creation_time": 1733116085.7272615,
+                "auxillary_file_paths": [
+                    "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-8499943.pt"
+                ]
+            },
+            {
+                "steps": 8999829,
+                "file_path": "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-8999829.onnx",
+                "reward": null,
+                "creation_time": 1733116550.3472543,
+                "auxillary_file_paths": [
+                    "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-8999829.pt"
+                ]
+            },
+            {
+                "steps": 9499382,
+                "file_path": "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-9499382.onnx",
+                "reward": null,
+                "creation_time": 1733117024.094838,
+                "auxillary_file_paths": [
+                    "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-9499382.pt"
+                ]
+            },
+            {
+                "steps": 9999436,
+                "file_path": "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-9999436.onnx",
+                "reward": null,
+                "creation_time": 1733117498.58238,
+                "auxillary_file_paths": [
+                    "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-9999436.pt"
+                ]
+            },
+            {
+                "steps": 10000436,
+                "file_path": "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-10000436.onnx",
+                "reward": null,
+                "creation_time": 1733117498.6733797,
+                "auxillary_file_paths": [
+                    "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-10000436.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 10000436,
+            "file_path": "results\\escaperooma2c\\EscapeArtist.onnx",
+            "reward": null,
+            "creation_time": 1733117498.6733797,
+            "auxillary_file_paths": [
+                "results\\escaperooma2c\\EscapeArtist\\EscapeArtist-10000436.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.5.0+cpu"
+    }
+}

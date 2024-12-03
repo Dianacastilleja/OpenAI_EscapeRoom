@@ -111,7 +111,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 2cf7526019f9587489d2e98c7cad41c3, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: EscapeArtist
@@ -151,6 +151,15 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
+  pressurePlate: {fileID: 0}
+  endGoal: {fileID: 0}
+  door: {fileID: 0}
+  spawnRange: 8
+  stuckThreshold: 0.1
+  stuckCheckFrequency: 100
+  stuckGracePeriod: 5
+  proximityPenaltyThreshold: 3
+  distanceRewardMultiplier: 1
 --- !u!1 &4950317456135652544
 GameObject:
   m_ObjectHideFlags: 0
