@@ -1,0 +1,29 @@
+{
+    "EscapeArtist": {
+        "checkpoints": [
+            {
+                "steps": 151128,
+                "file_path": "results\\escaperoom_ppo_new\\EscapeArtist\\EscapeArtist-151128.onnx",
+                "reward": -4.315828860338245,
+                "creation_time": 1733206291.3971188,
+                "auxillary_file_paths": [
+                    "results\\escaperoom_ppo_new\\EscapeArtist\\EscapeArtist-151128.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 151128,
+            "file_path": "results\\escaperoom_ppo_new\\EscapeArtist.onnx",
+            "reward": -4.315828860338245,
+            "creation_time": 1733206291.3971188,
+            "auxillary_file_paths": [
+                "results\\escaperoom_ppo_new\\EscapeArtist\\EscapeArtist-151128.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.5.0+cpu"
+    }
+}
