@@ -6,19 +6,19 @@ using Unity.MLAgents.Actuators;
 public class EscapeRoomAgent : Agent
 {
     private Rigidbody rb;
-    public GameObject pressurePlate1; // Reference to the first pressure plate
-    public GameObject pressurePlate2; // Reference to the second pressure plate
+    public GameObject pressurePlate1;
+    public GameObject pressurePlate2;
     public GameObject endGoal;
     public GameObject door;
 
-    public float stuckThreshold = 0.1f; // Threshold for detecting if the agent is stuck
-    public int stuckCheckFrequency = 100; // Number of steps before checking for stuck
-    public int stuckGracePeriod = 5; // Number of consecutive stuck checks allowed before penalizing
+    public float stuckThreshold = 0.1f;
+    public int stuckCheckFrequency = 100;
+    public int stuckGracePeriod = 5;
 
-    private int stepsSinceLastMoveCheck = 0; // Tracks steps for the next stuck check
-    private int stuckChecks = 0; // Tracks consecutive stuck checks
+    private int stepsSinceLastMoveCheck = 0;
+    private int stuckChecks = 0;
 
-    private Vector3 lastPosition; // Tracks the agent's last position
+    private Vector3 lastPosition;
     private float lastDistanceToGoal;
     private float lastDistanceToPlate1;
     private float lastDistanceToPlate2;
@@ -34,7 +34,6 @@ public class EscapeRoomAgent : Agent
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
-        // Cache scripts for door and plates
         doorScript = door.GetComponent<Door>();
         plateScript1 = pressurePlate1.GetComponent<PressurePlate>();
         plateScript2 = pressurePlate2.GetComponent<PressurePlate>();
@@ -51,14 +50,12 @@ public class EscapeRoomAgent : Agent
         stepsSinceLastMoveCheck = 0;
         stuckChecks = 0;
 
-        // Reset door and pressure plates
         doorScript?.CloseDoor();
         plateScript1?.ResetPlate();
         plateScript2?.ResetPlate();
 
         RandomizePositions();
 
-        // Cache initial distances
         lastDistanceToPlate1 = Vector3.Distance(transform.localPosition, pressurePlate1.transform.localPosition);
         lastDistanceToPlate2 = Vector3.Distance(transform.localPosition, pressurePlate2.transform.localPosition);
         lastDistanceToGoal = Vector3.Distance(transform.localPosition, endGoal.transform.localPosition);
@@ -68,21 +65,20 @@ public class EscapeRoomAgent : Agent
 
     private void RandomizePositions()
     {
-        // Randomize agent and pressure plate positions within the specified bounds
         transform.localPosition = new Vector3(
             Random.Range(-4f, 14f),
             -0.75f,
             Random.Range(-4f, 14f)
         );
         pressurePlate1.transform.localPosition = new Vector3(
-            Random.Range(-5.047f, 14.35f), // X-axis range
-            -1.241f,                       // Fixed Y-axis position
-            Random.Range(-4.786f, 14.534f) // Z-axis range
+            Random.Range(-5.047f, 14.35f),
+            -1.241f,
+            Random.Range(-4.786f, 14.534f)
         );
         pressurePlate2.transform.localPosition = new Vector3(
-            Random.Range(-5.047f, 14.35f), // X-axis range
-            -1.241f,                       // Fixed Y-axis position
-            Random.Range(-4.786f, 14.534f) // Z-axis range
+            Random.Range(-5.047f, 14.35f),
+            -1.241f,
+            Random.Range(-4.786f, 14.534f)
         );
 
         Debug.Log("EscapeRoomAgent: Randomized positions for agent and pressure plates.");
@@ -92,18 +88,15 @@ public class EscapeRoomAgent : Agent
     {
         float maxRange = 20f;
 
-        // Agent's position and velocity
         sensor.AddObservation(transform.localPosition / maxRange);
         sensor.AddObservation(rb.velocity.x);
         sensor.AddObservation(rb.velocity.z);
 
-        // Pressure plates
         sensor.AddObservation((pressurePlate1.transform.localPosition - transform.localPosition) / maxRange);
         sensor.AddObservation((pressurePlate2.transform.localPosition - transform.localPosition) / maxRange);
         sensor.AddObservation(plateScript1.IsActivated ? 1.0f : 0.0f);
         sensor.AddObservation(plateScript2.IsActivated ? 1.0f : 0.0f);
 
-        // Door and goal
         sensor.AddObservation(doorScript.IsOpen ? 1.0f : 0.0f);
         sensor.AddObservation((endGoal.transform.localPosition - transform.localPosition) / maxRange);
 
@@ -121,7 +114,7 @@ public class EscapeRoomAgent : Agent
             ReachedEndGoal();
         }
 
-        AddReward(-0.001f); // Small time penalty
+        AddReward(-0.001f);
 
         if (StepCount >= MaxStep && !goalReached)
         {
@@ -145,21 +138,28 @@ public class EscapeRoomAgent : Agent
         Quaternion rotation = Quaternion.Euler(0f, turn * Time.fixedDeltaTime * rotationSpeed, 0f);
         rb.MoveRotation(rb.rotation * rotation);
 
-        Debug.Log($"EscapeRoomAgent: Movement applied (MoveX: {moveX}, Turn: {turn}).");
+       // Debug.Log($"EscapeRoomAgent: Movement applied (MoveX: {moveX}, Turn: {turn}).");
     }
 
     private void HandlePenalties()
     {
         CheckForStuckAgent();
+
+        float plate1Distance = Vector3.Distance(transform.localPosition, pressurePlate1.transform.localPosition);
+        float plate2Distance = Vector3.Distance(transform.localPosition, pressurePlate2.transform.localPosition);
+
+        if (plate1Distance < 1f && plate2Distance < 1f)
+        {
+            AddReward(-0.05f);
+            Debug.Log("EscapeRoomAgent: Penalized for crowding the same plate.");
+        }
     }
 
     private void HandleRewards()
     {
-        // Distance-based reward for moving closer to respective pressure plates
         float distanceToPlate1 = Vector3.Distance(transform.localPosition, pressurePlate1.transform.localPosition);
         float distanceToPlate2 = Vector3.Distance(transform.localPosition, pressurePlate2.transform.localPosition);
 
-        // Assign preferred plates (Agent Red prefers Plate 1, Agent Blue prefers Plate 2)
         if (gameObject.name.Contains("Red"))
         {
             float progress1 = lastDistanceToPlate1 - distanceToPlate1;
@@ -168,7 +168,7 @@ public class EscapeRoomAgent : Agent
 
             if (plateScript2.IsActivated)
             {
-                AddReward(-0.2f); // Penalize for approaching already activated Plate 2
+                AddReward(-0.2f);
             }
         }
         else if (gameObject.name.Contains("Blue"))
@@ -179,14 +179,13 @@ public class EscapeRoomAgent : Agent
 
             if (plateScript1.IsActivated)
             {
-                AddReward(-0.2f); // Penalize for approaching already activated Plate 1
+                AddReward(-0.2f);
             }
         }
 
-        // Cooperative reward for activating both plates simultaneously
         if (plateScript1.IsActivated && plateScript2.IsActivated && !doorScript.IsOpen)
         {
-            AddReward(5.0f); // Large cooperative reward for opening the door
+            AddReward(5.0f);
             doorScript.OpenDoor();
             Debug.Log("Both plates activated simultaneously. Door opened!");
         }
@@ -209,10 +208,24 @@ public class EscapeRoomAgent : Agent
             }
             else
             {
-                stuckChecks = 0; // Reset if the agent moved
+                stuckChecks = 0;
             }
-            lastPosition = transform.localPosition; // Update position
-            stepsSinceLastMoveCheck = 0; // Reset step counter
+            lastPosition = transform.localPosition;
+            stepsSinceLastMoveCheck = 0;
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            AddReward(-0.1f);
+            Debug.Log("EscapeRoomAgent: Penalized for hitting a wall.");
+        }
+        else if (collision.gameObject.CompareTag("Agent"))
+        {
+            AddReward(-0.2f);
+            Debug.Log("EscapeRoomAgent: Penalized for colliding with another agent.");
         }
     }
 
@@ -221,7 +234,7 @@ public class EscapeRoomAgent : Agent
         if (!goalReached)
         {
             goalReached = true;
-            AddReward(10.0f); // Large reward for completing the task
+            AddReward(10.0f);
             Debug.Log("EscapeRoomAgent: Goal reached.");
             EndEpisode();
         }
@@ -229,10 +242,9 @@ public class EscapeRoomAgent : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        // Manual testing with keyboard input
         var continuousActions = actionsOut.ContinuousActions;
-        continuousActions[0] = Input.GetAxis("Vertical");   // Forward/backward movement
-        continuousActions[1] = Input.GetAxis("Horizontal"); // Turning left/right
+        continuousActions[0] = Input.GetAxis("Vertical");
+        continuousActions[1] = Input.GetAxis("Horizontal");
 
         Debug.Log("EscapeRoomAgent: Heuristic actions applied.");
     }
