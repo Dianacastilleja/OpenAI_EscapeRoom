@@ -1,0 +1,30 @@
+{
+    "EscapeArtist": {
+        "elo": 1000.0,
+        "checkpoints": [
+            {
+                "steps": 21504,
+                "file_path": "results\\EscapeRoomPOCACPU2\\EscapeArtist\\EscapeArtist-21504.onnx",
+                "reward": null,
+                "creation_time": 1733260713.0990257,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCACPU2\\EscapeArtist\\EscapeArtist-21504.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 21504,
+            "file_path": "results\\EscapeRoomPOCACPU2\\EscapeArtist.onnx",
+            "reward": null,
+            "creation_time": 1733260713.0990257,
+            "auxillary_file_paths": [
+                "results\\EscapeRoomPOCACPU2\\EscapeArtist\\EscapeArtist-21504.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "2.4.1+cpu"
+    }
+}
