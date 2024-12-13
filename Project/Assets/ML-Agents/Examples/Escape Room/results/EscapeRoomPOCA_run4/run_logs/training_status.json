@@ -1,0 +1,68 @@
+{
+    "difficulty": {
+        "lesson_num": 0
+    },
+    "EscapeArtist": {
+        "checkpoints": [
+            {
+                "steps": 31499680,
+                "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-31499680.onnx",
+                "reward": 311.3292014122009,
+                "creation_time": 1733992715.0668766,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-31499680.pt"
+                ]
+            },
+            {
+                "steps": 31999291,
+                "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-31999291.onnx",
+                "reward": 320.02166391623143,
+                "creation_time": 1733994106.809453,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-31999291.pt"
+                ]
+            },
+            {
+                "steps": 32130967,
+                "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32130967.onnx",
+                "reward": 297.05456966858407,
+                "creation_time": 1733994326.327317,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32130967.pt"
+                ]
+            },
+            {
+                "steps": 32499556,
+                "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32499556.onnx",
+                "reward": null,
+                "creation_time": 1733996080.5172682,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32499556.pt"
+                ]
+            },
+            {
+                "steps": 32908096,
+                "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32907296.onnx",
+                "reward": -7.848799645900726,
+                "creation_time": 1733997100.4068284,
+                "auxillary_file_paths": [
+                    "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32907296.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 32908096,
+            "file_path": "results\\EscapeRoomPOCA_run4\\EscapeArtist.onnx",
+            "reward": -7.848799645900726,
+            "creation_time": 1733997100.4068284,
+            "auxillary_file_paths": [
+                "results\\EscapeRoomPOCA_run4\\EscapeArtist\\EscapeArtist-32907296.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "2.4.1+cpu"
+    }
+}

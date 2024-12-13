@@ -19,12 +19,12 @@ public class PressurePlate : MonoBehaviour
     {
         // Ensure the plate starts with its default material
         ResetPlate();
-        Debug.Log($"PressurePlate: Initialized at position {transform.localPosition}.");
+      //  Debug.Log($"PressurePlate: Initialized at position {transform.localPosition}.");
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"PressurePlate: Triggered by {other.gameObject.name} with tag {other.tag}.");
+       // Debug.Log($"PressurePlate: Triggered by {other.gameObject.name} with tag {other.tag}.");
 
         // Check if the object triggering is an agent
         if (other.CompareTag("Agent"))
@@ -36,14 +36,14 @@ public class PressurePlate : MonoBehaviour
             if (AllPlatesActivated())
             {
                 door?.OpenDoor();
-                Debug.Log("PressurePlate: All plates activated, door opened.");
+             //   Debug.Log("PressurePlate: All plates activated, door opened.");
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        Debug.Log($"PressurePlate: Exit triggered by {other.gameObject.name} with tag {other.tag}.");
+      //  Debug.Log($"PressurePlate: Exit triggered by {other.gameObject.name} with tag {other.tag}.");
 
         // Check if the object exiting is an agent
         if (other.CompareTag("Agent"))
@@ -54,7 +54,7 @@ public class PressurePlate : MonoBehaviour
             if (agentsOnPlate <= 0)
             {
                 ResetPlate();
-                Debug.Log("PressurePlate: Deactivated as no agents are on it.");
+             //   Debug.Log("PressurePlate: Deactivated as no agents are on it.");
             }
         }
     }
@@ -70,7 +70,7 @@ public class PressurePlate : MonoBehaviour
                 plateRenderer.material = activatedMaterial;
             }
 
-            Debug.Log("PressurePlate: Activated successfully.");
+          //  Debug.Log("PressurePlate: Activated successfully.");
         }
     }
 
@@ -83,7 +83,7 @@ public class PressurePlate : MonoBehaviour
             plateRenderer.material = defaultMaterial;
         }
 
-        Debug.Log("PressurePlate: Reset to default state.");
+       // Debug.Log("PressurePlate: Reset to default state.");
     }
 
     private bool AllPlatesActivated()

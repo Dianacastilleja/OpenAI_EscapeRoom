@@ -48,6 +48,9 @@ TagManager:
   - pressurePlate
   - endGoal
   - endGoalWall
+  - Lava
+  - LavaCollider
+  - Sphere
   layers:
   - Default
   - TransparentFX

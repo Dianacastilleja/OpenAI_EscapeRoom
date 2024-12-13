@@ -1,0 +1,210 @@
+Escape Room
+Diana Castilleja, Fabian Hernandez, Jose Hernandez
+
+Agenda
+Motivation 
+Related Works
+Our objective 
+Methodology 
+Results
+Discussion 
+
+Motivation
+Why did we choose this ?
+We wanted something fun yet simple to try out in order to carefully focus on the algorithm and environment 
+
+
+
+Related Works
+Emergent Tool Use from Multi-Agent Autocurricula
+Bowen Baker, Ingmar Kanitscheider, Todor Markov, Yi Wu, Glenn Powell, Bob McGrew, Igor Mordatch 2020
+This study demonstrates emergent strategies in a multi-agent hide-and-seek game using reinforcement learning. Agents developed six strategies, including tool use and collaboration, driven by self-supervised autocurricula from multi-agent competition. The results reveal scalable, human-relevant behaviors surpassing intrinsic motivation methods. Evaluation through intelligence tests highlights challenges in skill transfer and reuse. Open-sourced environments support future research.
+
+
+
+Achievements
+Emergent Strategies and Tool Use:
+The study revealed how simple game rules and multi-agent competition can lead to sophisticated strategies, such as building shelters, moving objects, and using ramps to overcome obstacles. These strategies emerged naturally through interactions, demonstrating the potential of autocurricula to foster complex, human-relevant skills.
+Scalability:
+The agents’ behaviors became increasingly complex as the environment's complexity increased, suggesting that multi-agent learning scales effectively compared to traditional intrinsic motivation methods. This highlights the potential for applying such systems to real-world tasks requiring adaptability.
+Evaluation Framework:
+The authors proposed and implemented a set of domain-specific intelligence tests to measure agent capabilities, such as memory, navigation, and object manipulation. This provides a structured way to benchmark the progress and generalization of learned behaviors.
+
+Limitations
+High Sample Complexity:
+Achieving emergent behaviors required hundreds of millions of episodes, highlighting the inefficiency of current reinforcement learning algorithms. This high computational cost limits practical applications and scalability to even larger tasks.
+Limited Transfer of Learned Skills:
+While agents performed well in their training environment, transferring skills to new tasks proved challenging. This indicates that the learned representations were entangled and not easily reusable across different contexts, a critical hurdle for real-world adaptability.
+Environment Exploits:
+Agents exploited minor inaccuracies in the simulation, such as "surfing" on objects due to physics glitches. These unintended behaviors underscore the challenge of designing robust environments where agents do not deviate from expected task goals.
+Bounded Strategy Space:
+The strategies that emerged were limited by the fixed game rules and environment setup. While the study demonstrated complex behaviors, the growth in complexity was inherently constrained, raising questions about scalability to more open-ended or real-world scenarios.
+
+Related Works
+Creating Self-Learning AI Using Unity Machine LearningOlli-Pekka Juhola
+This paper explores the development of AI for a coin-collecting game using two methods: Unity's Navigation and Pathfinding system and Unity ML-Agents Toolkit with reinforcement learning. Both methods resulted in functional prototypes. The ML-Agents-based AI outperformed the traditional Unity AI by collecting significantly more coins during tests, demonstrating the effectiveness of machine learning for creating intelligent, adaptable agents.
+
+
+Achievements
+Development of Functional AI with Two Methods:The author successfully created functional AI prototypes using both Unity's Navigation and Pathfinding system and the ML-Agents Toolkit. The former relies on predefined paths, while the latter employs reinforcement learning to enable self-learning behavior.
+Demonstration of Machine Learning Superiority:The machine-learned agent significantly outperformed the traditional Unity AI in coin collection tests, highlighting the potential of reinforcement learning for creating intelligent, adaptable agents. For example, in a two-minute test, the ML-Agents-based AI collected over twice as many coins as the NavMeshAgent.
+Scalability of Training Environments:By training multiple agents simultaneously using the ML-Agents Toolkit, the author demonstrated a scalable approach to reinforcement learning that accelerates the training process and improves the efficiency of AI development.
+Enhanced Agent Behavior:Machine-learned agents could adapt to dynamic environments and autonomously learn game mechanics, offering greater flexibility compared to the rigid pre-programmed behavior of NavMeshAgents.
+Limitations
+Complexity of ML-Agents Setup:Setting up and training an ML-Agent was significantly more challenging than creating a NavMeshAgent. It required additional tools, such as Python, TensorFlow, and Unity-specific configurations, which might pose barriers for developers unfamiliar with machine learning.
+High Computational Costs:The reinforcement learning approach required extensive training episodes to achieve desirable results. This high sample complexity increases computational costs, making the approach less accessible for resource-constrained developers.
+Limited Real-Time Adaptability for NavMeshAgents:While NavMeshAgents were easier to set up, their pre-defined navigation paths and lack of learning capabilities constrained their adaptability to changes in the environment.
+Dependence on Training Setup for ML-Agents:The performance of ML-Agents heavily relied on the quality of the training setup, including reward systems, environment design, and parameter tuning. Poorly configured setups could lead to suboptimal agent behavior or slow training progress.
+
+
+Our objective 
+Our objective 
+
+
+Our Objective
+What our project and what was the problem we wanted to solve?
+In our first and current environment we have one agent where they need to focus on touching a pressure plate in order for a door to open to be able to exit the room
+In our second environment we have two agents, two plates, and one exit
+
+
+Our Environment	
+Environment - walls, door, pressure plate
+States - observation space (33) dimensional vector observations 
+Actions - continuous movement  in any direction
+Rewards - positive reward for touching the pressure plate and exiting through the end goal (door) , negative reward for every single step and touching the wall
+
+The state space is determined by Unity and the specific game/environment design.
+Example observations in the original PPO setup:
+Agent's position or velocity.
+Distance to goal or targets.
+Proximity to obstacles or other key features (via raycasting, for example).
+Stacked Vectors: 1 (no stacking of past observations).
+ 45 - number of features (dimensions) that represent the state space of the agent in the environment. They are inputs to the policy network allowing the agent to sense and interpret the environment 
+
+Methodology
+-PPO 
+-SAC 
+-PPO new algorithms one with adaptive entropy coefficient and another with value function loss clipping
+-POCA - MultiAgent Reinforcement Learning
+
+
+Soft Actor-Critic(SAC)
+SAC maximizes expected reward while also maximizing entropy to encourage exploration.
+
+
+
+
+
+
+
+Proximal Policy Optimization(PPO)
+The PPO algorithm optimizes a surrogate objective function that includes a clipping mechanism to limit policy updates, ensuring stable learning.
+
+
+
+
+
+
+
+ PPO - Adaptive Entropy Coefficient
+Key Points:
+Entropy encourages exploration by preventing the policy from becoming deterministic too quickly.
+Static entropy coefficients can sometimes over- or under-penalize entropy, leading to suboptimal behavior.
+Objective: Introduce an adaptive entropy coefficient to dynamically adjust exploration-exploitation trade-offs during training.
+
+
+Adaptive Entropy Coefficient 
+What is Entropy in Reinforcement Learning?
+In reinforcement learning, entropy measures the randomness or unpredictability in an agent's decisions.
+A high entropy means the agent is exploring many different actions, trying to learn which ones work best.
+A low entropy means the agent is becoming more confident in its decisions and sticking to actions it believes are optimal.
+
+
+What is an Adaptive Entropy Coefficient?
+Instead of keeping the entropy coefficient fixed, we adapt it based on the agent's training progress.
+The coefficient changes dynamically to strike a balance between exploration and exploitation:
+Early in training: The coefficient is high to encourage the agent to explore the environment and gather diverse experiences.
+Later in training: The coefficient decreases, so the agent focuses more on exploiting what it has learned to maximize rewards.
+
+
+How Adaptive Entropy Was Integrated
+Modified PPO Optimizer:
+Introduced an adaptive entropy coefficient mechanism based on policy loss trends.
+Used a decay mechanism where the coefficient decreases as training progresses or when policy stabilizes.
+Updated Trainer Logic:
+Ensured that the entropy coefficient interacts seamlessly with other loss components (policy loss, value loss).
+
+
+How Does Adaptive Entropy Work?
+Imagine you're teaching a robot to play a game:
+At first, the robot knows nothing about the game. You want it to try lots of random moves to figure out what works (high entropy).
+As the robot gets better at the game, you want it to focus more on the strategies that are working and stop wasting time on random moves (low entropy).
+An adaptive entropy coefficient does this automatically:
+It starts with a high value to encourage exploration.
+Over time, it gradually decreases (using a decay function like linear or exponential) as the agent improves.
+
+
+
+PPO with Value Function Loss Clipping
+Standard PPO Value function Loss:
+Value Function Loss Clipping:
+
+
+
+
+Original PPO Versus New PPO
+
+Multiagent POCA
+POCA stands for Proximally Optimized Centralized Actor. It is a reinforcement learning algorithm designed specifically for multi-agent training. POCA extends the principles of Proximal Policy Optimization (PPO) to enable efficient coordination and learning among multiple agents in shared or cooperative environments.
+Key features:
+Centralized value function
+Decentralized actor
+Proximal optimization
+Cooperative and competitive setting 
+
+Multiagent POCA Rewards/Penalties
+
+Results
+ 
+
+Results
+ As we work on encouraging cooperation between two agents in the same environment, some unexpected and humorous behaviors have emerged. The training process is still ongoing, so conclusive results and graphs are not yet available. This remains a work in progress.
+
+Discussion
+How did we possibly contribute to the field of RL ?
+Dynamically adjusting exploration ensures that the agent balances learning efficiency with environment exploration.
+It is not usually common to use it in PPO
+Adding clipping to the Value function loss
+
+
+Discussion
+What was our limitations ?
+-Having unity work with python scripts 
+-Creating the new algorithm to be accepted by unity 
+-Certain packages that were used did not want to upgrade for some reason
+
+
+
+Future Work
+Have the agents compete against each other (self-play)(POCA) 
+Pathfinding and escaping from dangerous terrain
+
+References
+Baker, B., Kanitscheider, I., Markov, T., Wu, Y., Powell, G., McGrew, B., & Mordatch, I. (2020). Emergent tool use from multi-agent autocurricula. In Proceedings of the International Conference on Learning Representations (ICLR). Retrieved from https://arxiv.org/pdf/1909.07528
+Strouse, D. J., Baumli, K., Warde-Farley, D., Mnih, V., & Hansen, S. (2022). Learning more skills through optimistic exploration. arXiv preprint arXiv:2107.14226. Retrieved from https://arxiv.org/pdf/2107.14226
+Juhola, O.-P. (2019). Machine learning applications in video game AI (Bachelor's thesis, Laurea University of Applied Sciences). Retrieved from https://www.theseus.fi/bitstream/handle/10024/261509/Juhola_Olli-Pekka.pdf
+Tervo, A. (2021). Deep reinforcement learning with PPO (Master's thesis, University of Turku). Retrieved from https://www.utupub.fi/bitstream/handle/10024/154305/Gradu%20-%20Aki%20Tervo.pdf
+Jafar, A., & Johnsson, M. T. (2020). Efficiency comparison between curriculum reinforcement learning and reinforcement learning using ML-Agents (Bachelor's thesis, Blekinge Institute of Technology). Retrieved from https://www.diva-portal.org/smash/get/diva2:1454243/FULLTEXT02
+Open-Ended Learning Team, Stooke, A., Mahajan, A., Barros, C., Deck, C., Bauer, J., Sygnowski, J., Trebacz, M., Jadeberg, M., Mathieu, M., McAleese, N., Bradley-Schmieg, N., Wong, N., Porcel, N., Raileanu, R., Hughes-Fitt, S., Dalibard, V., & Czarnecki, W. M. (n.d.). Open-ended learning leads to generally capable agents. DeepMind. Retrieved from https://arxiv.org/pdf/2107.12808
+
+
+
+Github Repositories 
+Unity ML-Agents ToolkitA comprehensive library for reinforcement learning in Unity environments.GitHub Repo
+Unity ML-Agents Documentation and Tutorials
+ML-Agents Documentation
+Custom Trainer Plugin Tutorial
+
+
+Thank you
+Questions or Comments?

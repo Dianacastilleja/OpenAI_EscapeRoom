@@ -16,7 +16,7 @@ public class Door : MonoBehaviour
     {
         // Ensure the door starts in the closed position
         CloseDoor();
-        Debug.Log("Door: Initialized and set to closed position.");
+       // Debug.Log("Door: Initialized and set to closed position.");
     }
 
     // Opens the door by moving it to the open position
@@ -26,11 +26,11 @@ public class Door : MonoBehaviour
         {
             isOpen = true;
             transform.localPosition = openPosition; // Move to open position
-            Debug.Log($"Door: Opened at position {transform.localPosition}.");
+          //  Debug.Log($"Door: Opened at position {transform.localPosition}.");
         }
         else
         {
-            Debug.LogWarning("Door: Attempted to open an already open door.");
+           // Debug.LogWarning("Door: Attempted to open an already open door.");
         }
     }
 
@@ -41,21 +41,21 @@ public class Door : MonoBehaviour
         {
             isOpen = false;
             transform.localPosition = closedPosition; // Move to closed position
-            Debug.Log($"Door: Closed at position {transform.localPosition}.");
+          //  Debug.Log($"Door: Closed at position {transform.localPosition}.");
         }
         else
         {
-            Debug.LogWarning("Door: Attempted to close an already closed door.");
+          //  Debug.LogWarning("Door: Attempted to close an already closed door.");
         }
     }
 
     private void OnEnable()
     {
-        Debug.Log("Door: Enabled in the scene.");
+      //  Debug.Log("Door: Enabled in the scene.");
     }
 
     private void OnDisable()
     {
-        Debug.LogWarning("Door: Deactivated.");
+      //  Debug.LogWarning("Door: Deactivated.");
     }
 }
